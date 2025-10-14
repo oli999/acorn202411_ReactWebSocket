@@ -15,8 +15,13 @@ function App() {
     const socket=new WebSocket("ws://192.168.0.107:9000/ws");
     //생성된 WebSocket 객체의 참조값을 socketRef 에 저장해두기
     socketRef.current = socket;
-    socket.onopen = ()=>{};
+    //접속이 완료 되었을때 실행할 함수 등록
+    socket.onopen = ()=>{
+      setMsgs(prev=>[...prev, "웹소켓 접속이 되었습니다"]);
+    };
+    // 웹소켓으로 새로운 메세지가 도착했을때 실행할 함수 등록
     socket.onmessage = (event)=>{
+      // event 는 object 인데 event.data 에는 도착한 메세지(문자열)이 들어 있다.
       setMsgs(prev =>{
         return [...prev, event.data];
       });
@@ -40,12 +45,42 @@ function App() {
     //입력창 지우기
     inputRef.current!.value="";
   };
+
+   const divStyle={
+    height:"300px",
+    width:"500px",
+    backgroundColor:"#cecece",
+    padding:"10px",
+    overflowY:"auto",
+    scrollBehavior:"smooth"
+  };
+  // style={} 에 적용할 객체의 type 은 React.CSSProperties 이다 
+  const bubbleStyle: React.CSSProperties = {
+    backgroundColor: "#fff",
+    borderRadius: "10px",
+    padding: "8px 12px",
+    marginBottom: "8px",
+    display: "inline-block",
+    maxWidth: "80%",
+    boxShadow: "0 1px 4px rgba(0,0,0,0.2)"
+  };
+
+  const divRef=useRef<HTMLDivElement>(null);
+  //자동 스크롤
+  useEffect(()=>{
+    divRef.current!.scrollTop = divRef.current!.scrollHeight;
+  }, [msgs]);
+
   return <>
     <h1>WebSocket 테스트</h1>
     <input type="text" ref={inputRef}/>
     <button onClick={handleSend}>전송</button>
-    <div>
-      {msgs.map((item, index) => <div key={index}>{item}</div>)}
+    <div style={divStyle} ref={divRef}>
+      {msgs.map((item, index) => 
+        <div key={index}>
+          <div style={bubbleStyle} >{item}</div>
+        </div>
+      )}
     </div>
   </>
 }
